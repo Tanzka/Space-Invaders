@@ -9,6 +9,6 @@ canvas.height = 768;
 const background = new Image();
 background.src = "images/space.jpg";
 
-background.onload = function() {
+background.onload = function() { //This is just a test at this point, wrap it up in a function and do it better when we start building the game
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 }
