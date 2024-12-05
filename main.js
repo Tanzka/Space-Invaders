@@ -1,5 +1,3 @@
-
-
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -12,6 +10,41 @@ background.src = "images/space.jpg";
 background.onload = function() { //This is just a test at this point, wrap it up in a function and do it better when we start building the game
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 }
+
+class Player {
+    constructor() {
+        this.velocity = {
+            x: 0,
+            y: 0
+        }
+
+        const image = new Image();
+        image.src = "./images/PlayerShip.png"
+        image.onload = () => {
+            const scale = 0.40;
+            this.image = image;
+            this.width = image.width * scale;
+            this.height = image.height * scale;
+            this.position = {
+                x: canvas.width / 2 - this.width / 2,
+                y: canvas.height - this.height - 20
+            }
+        }  
+    }
+
+    draw() {
+        if (this.image)
+            ctx.drawImage(this.image, this.position.x, this.position.y, this.width, this.height)
+    }
+}
+
+const player = new Player();
+function animate() {
+    requestAnimationFrame(animate);
+    player.draw();
+}
+
+animate()
 
 
 //Enemy
