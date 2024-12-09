@@ -7,10 +7,7 @@ canvas.height = 768;
 const background = new Image();
 background.src = "images/space.jpg";
 
-background.onload = function() { //This is just a test at this point, wrap it up in a function and do it better when we start building the game
-    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-}
-
+//Class for player to draw and move the sprite
 class Player {
     constructor() {
         this.velocity = {
@@ -33,18 +30,80 @@ class Player {
     }
 
     draw() {
-        if (this.image)
-            ctx.drawImage(this.image, this.position.x, this.position.y, this.width, this.height)
+        ctx.drawImage(this.image, this.position.x, this.position.y, this.width, this.height)
+    }
+
+    update() {
+        if (this.image) {
+            this.draw();
+            this.position.x += this.velocity.x;
+        }
     }
 }
 
 const player = new Player();
+const keys = {
+    ArrowLeft: {
+        pressed: false
+    },
+    ArrowRight: {
+        pressed: false
+    },
+    space: {
+        pressed: false
+    }
+}
+
 function animate() {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
     requestAnimationFrame(animate);
-    player.draw();
+    player.update();
+
+    if (keys.ArrowLeft.pressed && player.position.x >= 0) {
+        player.velocity.x = -3;
+    } else if (keys.ArrowRight.pressed && player.position.x + player.width <= canvas.width) {
+        player.velocity.x = 3;
+    } else {
+        player.velocity.x = 0;
+    }
 }
 
 animate()
+
+addEventListener("keydown", ({key}) => {
+    switch (key) {
+        case 'ArrowLeft':
+            console.log("left")
+            keys.ArrowLeft.pressed = true;
+            break
+        case 'ArrowRight':
+            console.log("right")
+            keys.ArrowRight.pressed = true;
+            break
+        case ' ':
+            console.log("pew")
+            keys.space.pressed = true;
+            break
+    }
+})
+
+addEventListener("keyup", ({key}) => {
+    switch (key) {
+        case 'ArrowLeft':
+            console.log("left")
+            keys.ArrowLeft.pressed = false;
+            break
+        case 'ArrowRight':
+            console.log("right")
+            keys.ArrowRight.pressed = false;
+            break
+        case ' ':
+            console.log("pew")
+            keys.space.pressed = false;
+            break
+    }
+})
 
 
 //Enemy
