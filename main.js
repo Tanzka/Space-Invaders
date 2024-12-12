@@ -54,22 +54,7 @@ const keys = {
     }
 }
 
-function animate() {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-    requestAnimationFrame(animate);
-    player.update();
 
-    if (keys.ArrowLeft.pressed && player.position.x >= 0) {
-        player.velocity.x = -3;
-    } else if (keys.ArrowRight.pressed && player.position.x + player.width <= canvas.width) {
-        player.velocity.x = 3;
-    } else {
-        player.velocity.x = 0;
-    }
-}
-
-animate()
 
 addEventListener("keydown", ({key}) => {
     switch (key) {
@@ -106,53 +91,130 @@ addEventListener("keyup", ({key}) => {
 })
 
 
-//Enemy
 const enemyImage = new Image();
 enemyImage.src = "images/enemy.png";
 
-//Test settings
-enemySettings = {
+
+//Enemies settings
+const enemySettings = {
     width: 40,
     height: 40,
-    padding: 10,
-    x: 50,
-    y: 50,
-    colomnCount: 8,
-    rowCount: 1,
-    dx: 2,
-    dy: 20
+    padding: 1,
+    dx: 3,
+    dy: 10,
+    max: 50,
+    minperrow: 3,
+    maxperrow: 8,
+    minrows: 1,
+    maxrows: 5
 };
 
 let enemies = [];
-function createEnemies() {
-    for (let row = 0; row < enemySettings.rowCount; row++) {
-        for (let col = 0; col < enemySettings.colomnCount; col++) {
-            enemies.push({
-                x: enemySettings.x + col * (enemySettings.width + enemySettings.padding),
-                y: enemySettings.y + row * (enemySettings.height + enemySettings.padding),
-                width: enemySettings.width,
-                height: enemySettings.height,
-                alive: true // Check if the enemy has been shot
-            });
-        }
-    }
+let direction = 1;
+
+function createEnemy(x, y) {
+    return {
+        x: x,
+        y: y,
+        width: enemySettings.width,
+        height: enemySettings.height,
+        alive: true,
+    };
 }
 
-//Draw enemy
 function drawEnemies() {
     enemies.forEach(enemy => {
         if (enemy.alive) {
-            ctx.drawImage(enemyImage, enemy.x, enemy.y, enemy.width, enemy.height)
+            ctx.drawImage(enemyImage, enemy.x, enemy.y, enemy.width, enemy.height);
         }
     });
 }
 
-function moveEnemies() {
+function addEnemies() {
+    while (enemies.filter(enemy => enemy.alive).length < enemySettings.max) {
+        let maxY = 0;
+        enemies.forEach(enemy => {
+            if (enemy.alive && enemy.y + enemy.height > maxY) {
+                maxY = enemy.y + enemy.height;
+            }
+        });
 
+        const startY = maxY + enemySettings.height + enemySettings.padding;
+
+        const numEnemies = Math.floor(Math.random() * (enemySettings.maxperrow - enemySettings.minperrow + 1)) + enemySettings.minperrow;
+
+        for (let col = 0; col < numEnemies; col++) {
+            if (enemies.length >= enemySettings.max) break;
+
+            const x = col * (enemySettings.width + enemySettings.padding);
+
+            const conflict = enemies.some(
+                enemy => enemy.alive && Math.abs(enemy.x - x) < enemySettings.width
+            );
+
+            if (!conflict) {
+                enemies.push(createEnemy(x, startY));
+            }
+        }
+    }
 }
 
+function moveEnemies() {
+    let edgeReached = false;
+
+    for (let i = 0; i < enemies.length; i++) {
+        if (enemies[i].alive) {
+            if (direction === 1 && enemies[i].x + enemySettings.width >= canvas.width) {
+                edgeReached = true;
+                break;
+            }
+            if (direction === -1 && enemies[i].x <= 0) {
+                edgeReached = true;
+                break;
+            }
+        }
+    }
+
+    if (edgeReached) {
+        direction *= -1;
+        for (let i = 0; i < enemies.length; i++) {
+            if (enemies[i].alive) {
+                enemies[i].y += enemySettings.dy;
+            }
+        }
+    }
+
+    for (let i = 0; i < enemies.length; i++) {
+        if (enemies[i].alive) {
+            enemies[i].x += direction * enemySettings.dx;
+        }
+    }
+}
+
+
+
+function animate() {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    player.update();
+
+    addEnemies();
+    moveEnemies();
+    drawEnemies();
+
+
+    if (keys.ArrowLeft.pressed && player.position.x >= 0) {
+        player.velocity.x = -3;
+    } else if (keys.ArrowRight.pressed && player.position.x + player.width <= canvas.width) {
+        player.velocity.x = 3;
+    } else {
+        player.velocity.x = 0;
+    }
+
+    requestAnimationFrame(animate);
+}
 
 enemyImage.onload = () => {
-    createEnemies();
-    drawEnemies();
-}
+    addEnemies();
+    animate();
+};
