@@ -41,7 +41,31 @@ class Player {
     }
 }
 
+//Class to spawn projectiles to let the player shoot
+class Projectile {
+    constructor({position, velocity}) {
+        this.position = position;
+        this.velocity = velocity;
+        this.radius = 4;
+    }
+
+    draw() {
+        ctx.beginPath()
+        ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+        ctx.fillStyle = 'red';
+        ctx.fill()
+        ctx.closePath()
+    }
+
+    update() {
+        this.draw()
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    }
+}
+
 const player = new Player();
+const projectiles = [];
 const keys = {
     ArrowLeft: {
         pressed: false
@@ -59,6 +83,16 @@ function animate() {
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
     requestAnimationFrame(animate);
     player.update();
+    projectiles.forEach((projectile, index) => {
+    
+        if(projectile.position.y + projectile.radius <= 0) {
+            setTimeout(() => {
+                projectiles.splice(index, 1)
+            }, 0)
+        } else {
+            projectile.update()
+        }
+    })
 
     if (keys.ArrowLeft.pressed && player.position.x >= 0) {
         player.velocity.x = -3;
@@ -74,15 +108,25 @@ animate()
 addEventListener("keydown", ({key}) => {
     switch (key) {
         case 'ArrowLeft':
-            console.log("left")
+            //console.log("left")
             keys.ArrowLeft.pressed = true;
             break
         case 'ArrowRight':
-            console.log("right")
+            //console.log("right")
             keys.ArrowRight.pressed = true;
             break
         case ' ':
-            console.log("pew")
+            //console.log("pew")
+            projectiles.push(new Projectile({
+                position: {
+                    x: player.position.x + player.width / 2,
+                    y: player.position.y
+                },
+                velocity: {
+                    x: 0,
+                    y: -5
+                }
+            }))
             keys.space.pressed = true;
             break
     }
@@ -91,15 +135,15 @@ addEventListener("keydown", ({key}) => {
 addEventListener("keyup", ({key}) => {
     switch (key) {
         case 'ArrowLeft':
-            console.log("left")
+            //console.log("left")
             keys.ArrowLeft.pressed = false;
             break
         case 'ArrowRight':
-            console.log("right")
+            //console.log("right")
             keys.ArrowRight.pressed = false;
             break
         case ' ':
-            console.log("pew")
+            //console.log("pew")
             keys.space.pressed = false;
             break
     }
