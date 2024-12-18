@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 canvas {
     box-shadow: black 20px 10px 50px;
 }
@@ -15,4 +16,11 @@ body {
         rgba(0, 0, 0, 0) 100%
     );
     overflow: hidden;
+}
+p {
+    font-family: "Press Start 2P", serif;
+    background: black;
+    position: relative;
+    z-index: 10;
+    color: white;
 }
