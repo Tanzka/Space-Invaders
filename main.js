@@ -62,6 +62,29 @@ class Projectile {
         this.position.y += this.velocity.y;
     }
 }
+
+//Enemy projectiles
+class EnemyProjectile {
+    constructor({position, velocity}) {
+        this.position = position;
+        this.velocity = velocity;
+
+        this.width = 6;
+        this.height = 10;
+    }
+
+    draw() {
+        ctx.fillStyle = "#ff00f0";
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
+    }
+
+    update() {
+        this.draw()
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    }
+}
+
 const player = new Player();
 const projectiles = [];
 const keys = {
@@ -187,6 +210,19 @@ class Enemy {
             this.draw();
         }
     }
+
+    shoot(enemyProjectiles) {
+        enemyProjectiles.push(new EnemyProjectile({
+            position: {
+                x: this.position.x + this.width / 2,
+                y: this.position.y + this.height
+            },
+            velocity: {
+                x: 0,
+                y: 5
+            }
+        }))
+    }
 }
 
 // Class for managing grid of enemies
@@ -219,8 +255,8 @@ class EnemyGrid {
         this.speed.y = 0
     
         if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
-          this.speed.x = -this.speed.x * 1.05;
-          this.speed.y = 30;
+            this.speed.x = -this.speed.x;
+            this.speed.y = 30;
         }
 
         this.enemies.forEach(enemy => {
@@ -232,7 +268,11 @@ class EnemyGrid {
 const enemyGrids = [];
 let spawnSpeed= 7000;
 let lastSpawn = 0;
+let gameOver = false;
 
+let frames = 0;
+
+const enemyProjectiles = [];
 
 // Function to check if a projectile collides with an enemy
 function checkHit(projectile, enemy) {
@@ -241,6 +281,24 @@ function checkHit(projectile, enemy) {
     const distance = Math.sqrt(distX * distX + distY * distY);
 
     return distance < projectile.radius + Math.min(enemy.width / 2, enemy.height / 2);
+}
+
+function checkHitPlayer(enemyProjectile, player) {
+    return (
+        enemyProjectile.position.x < player.position.x + player.width &&
+        enemyProjectile.position.x + enemyProjectile.width > player.position.x &&
+        enemyProjectile.position.y < player.position.y + player.height &&
+        enemyProjectile.position.y + enemyProjectile.height > player.position.y
+    );
+}
+
+function checkHitEnemy(enemy, player) {
+    return (
+        enemy.position.x < player.position.x + player.width &&
+        enemy.position.x + enemy.width > player.position.x &&
+        enemy.position.y < player.position.y + player.height &&
+        enemy.position.y + enemy.height > player.position.y
+    );
 }
 
 // Function to spawn new enemy grids
@@ -252,12 +310,33 @@ function moreEnemies() {
     }
 }
 
+function endGame() {
+    gameOver = true;
+    alert("Game Over!");
+}
+
 // Merged both of our codes
 function animate() {
+    if (gameOver) return;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
     player.update();
+
+    enemyProjectiles.forEach((enemyProjectile, index) => {
+        if (checkHitPlayer(enemyProjectile, player)) {
+            endGame();
+        }
+        if (enemyProjectile.position.y + enemyProjectile.height >= canvas.height) {
+            setTimeout(() => {
+                enemyProjectiles.splice(index, 1);
+            }, 0);
+        } else {
+            enemyProjectile.update();
+        }
+    });
+
     projectiles.forEach((projectile, index) => {
         if (projectile.position.y + projectile.radius <= 0) {
             setTimeout(() => {
@@ -293,9 +372,28 @@ function animate() {
 
     enemyGrids.forEach(grid => {
         grid.update();
+
+        grid.enemies.forEach((enemy) => {
+            if (enemy.alive && checkHitEnemy(enemy, player)) {  //Checking if the enemy collides with player
+                endGame();
+            }
+        });
+        if (frames % 200 === 0 && grid.enemies.length > 0) {
+            grid.enemies[Math.floor(Math.random() * grid.enemies.length)].shoot(enemyProjectiles)
+        }
+    });
+
+    enemyGrids.forEach((grid) => {
+        grid.enemies.forEach((enemy, index) => {
+            if (enemy.alive && enemy.position.y + enemy.height >= canvas.height) {
+                endGame();
+            }
+        });
     });
 
     moreEnemies();
+
+    frames++
 
     requestAnimationFrame(animate);
 }
