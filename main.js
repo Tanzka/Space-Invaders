@@ -73,31 +73,6 @@ const keys = {
     }
 }
 
-function animate() {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-    requestAnimationFrame(animate);
-    player.update();
-    projectiles.forEach((projectile, index) => {
-    
-        if(projectile.position.y + projectile.radius <= 0) {
-            setTimeout(() => {
-                projectiles.splice(index, 1)
-            }, 0)
-        } else {
-            projectile.update()
-        }
-    })
-
-    if (keys.ArrowLeft.pressed && player.position.x >= 0) {
-        player.velocity.x = -3;
-    } else if (keys.ArrowRight.pressed && player.position.x + player.width <= canvas.width) {
-        player.velocity.x = 3;
-    } else {
-        player.velocity.x = 0;
-    }
-}
-
 
 addEventListener("keydown", ({ key }) => {
     switch (key) {
