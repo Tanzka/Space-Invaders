@@ -62,6 +62,29 @@ class Projectile {
         this.position.y += this.velocity.y;
     }
 }
+
+//Enemy projectiles
+class EnemyProjectile {
+    constructor({position, velocity}) {
+        this.position = position;
+        this.velocity = velocity;
+
+        this.width = 6;
+        this.height = 10;
+    }
+
+    draw() {
+        ctx.fillStyle = "#ff00f0";
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
+    }
+
+    update() {
+        this.draw()
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    }
+}
+
 const player = new Player();
 const projectiles = [];
 const keys = {
@@ -187,6 +210,19 @@ class Enemy {
             this.draw();
         }
     }
+
+    shoot(enemyProjectiles) {
+        enemyProjectiles.push(new EnemyProjectile({
+            position: {
+                x: this.position.x + this.width / 2,
+                y: this.position.y + this.height
+            },
+            velocity: {
+                x: 0,
+                y: 5
+            }
+        }))
+    }
 }
 
 // Class for managing grid of enemies
@@ -233,6 +269,9 @@ const enemyGrids = [];
 let spawnSpeed= 7000;
 let lastSpawn = 0;
 
+let frames = 0;
+
+const enemyProjectiles = [];
 
 // Function to check if a projectile collides with an enemy
 function checkHit(projectile, enemy) {
@@ -258,6 +297,15 @@ function animate() {
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
     player.update();
+    enemyProjectiles.forEach((enemyProjectile, index) => {
+        if (enemyProjectile.position.y + enemyProjectile.height >= canvas.height) {
+            setTimeout(() => {
+                enemyProjectiles.splice(index, 1);
+            }, 0);   
+        } else 
+        enemyProjectile.update()
+    })
+
     projectiles.forEach((projectile, index) => {
         if (projectile.position.y + projectile.radius <= 0) {
             setTimeout(() => {
@@ -293,9 +341,14 @@ function animate() {
 
     enemyGrids.forEach(grid => {
         grid.update();
+        if (frames % 200 === 0 && grid.enemies.length > 0) {
+            grid.enemies[Math.floor(Math.random() * grid.enemies.length)].shoot(enemyProjectiles)
+        }
     });
 
     moreEnemies();
+
+    frames++
 
     requestAnimationFrame(animate);
 }
