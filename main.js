@@ -1,5 +1,6 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+const scoreCount = document.getElementById("scoreCount");
 
 canvas.width = 1024;
 canvas.height = 768;
@@ -11,10 +12,11 @@ background.src = "images/space.jpg";
 class Player {
     constructor() {
         this.velocity = { x: 0, y: 0 };
+        this.opacity = 1;
         const image = new Image();
         image.src = "./images/PlayerShip.png";
         image.onload = () => {
-            const scale = 0.40;
+            const scale = 0.30;
             this.image = image;
             this.width = image.width * scale;
             this.height = image.height * scale;
@@ -26,6 +28,7 @@ class Player {
     }
 
     draw() {
+        ctx.globalAlpha = this.opacity;
         ctx.drawImage(this.image, this.position.x, this.position.y, this.width, this.height);
     }
 
@@ -73,13 +76,15 @@ const keys = {
     }
 }
 
+let score = 0;
+
 function animate() {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
     requestAnimationFrame(animate);
     player.update();
     projectiles.forEach((projectile, index) => {
-    
+
         if(projectile.position.y + projectile.radius <= 0) {
             setTimeout(() => {
                 projectiles.splice(index, 1)
@@ -110,25 +115,27 @@ addEventListener("keydown", ({ key }) => {
             keys.ArrowRight.pressed = true;
             break;
         case ' ':
-            projectiles.push(new Projectile({
-                position: {
-                    x: player.position.x + player.width / 2,
-                    y: player.position.y
-                },
-                velocity: { x: 0, y: -5 }
-            }));
-            //console.log("pew")
-            projectiles.push(new Projectile({
-                position: {
-                    x: player.position.x + player.width / 2,
-                    y: player.position.y
-                },
-                velocity: {
-                    x: 0,
-                    y: -5
-                }
-            }))
-            keys.space.pressed = true;
+            if(!keys.space.pressed) {
+                projectiles.push(new Projectile({
+                    position: {
+                        x: player.position.x + player.width / 2,
+                        y: player.position.y
+                    },
+                    velocity: { x: 0, y: -5 }
+                }));
+                //console.log("pew")
+                projectiles.push(new Projectile({
+                    position: {
+                        x: player.position.x + player.width / 2,
+                        y: player.position.y
+                    },
+                    velocity: {
+                        x: 0,
+                        y: -5
+                    }
+                }))
+                keys.space.pressed = true;
+            }
             break;
     }
 });
@@ -262,6 +269,8 @@ function animate() {
             enemyGrids.forEach(grid => {
                 grid.enemies.forEach((enemy, i) => {
                     if (enemy.alive && checkHit(projectile, enemy)) {
+                        score += 100;
+                        scoreCount.innerHTML = score;
                         enemy.alive = false;
                         projectiles.splice(index, 1);
 
