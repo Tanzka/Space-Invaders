@@ -312,90 +312,104 @@ function moreEnemies() {
 
 function endGame() {
     gameOver = true;
-    alert("Game Over!");
+    //alert("Game Over!");
 }
 
 // Merged both of our codes
 function animate() {
-    if (gameOver) return;
+    if (gameOver) {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.font = "bold 48px serif";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "center";
+        ctx.fillText('GAME OVER', canvas.width * 0.5, canvas.height * 0.5 - 20);
+        ctx.font = "bold 32px serif";
+        ctx.fillText('Click to restart', canvas.width * 0.5, canvas.height * 0.5 + 20);
+        document.querySelector("canvas").addEventListener("click", function() {
+            location.reload();
+        });
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-
-    player.update();
-
-    enemyProjectiles.forEach((enemyProjectile, index) => {
-        if (checkHitPlayer(enemyProjectile, player)) {
-            endGame();
-        }
-        if (enemyProjectile.position.y + enemyProjectile.height >= canvas.height) {
-            setTimeout(() => {
-                enemyProjectiles.splice(index, 1);
-            }, 0);
-        } else {
-            enemyProjectile.update();
-        }
-    });
-
-    projectiles.forEach((projectile, index) => {
-        if (projectile.position.y + projectile.radius <= 0) {
-            setTimeout(() => {
-                projectiles.splice(index, 1);
-            }, 0);
-        } else {
-            projectile.update();
-
-            enemyGrids.forEach(grid => {
-                grid.enemies.forEach((enemy, i) => {
-                    if (enemy.alive && checkHit(projectile, enemy)) {
-                        score += 100;
-                        scoreCount.innerHTML = score;
-                        enemy.alive = false;
-                        projectiles.splice(index, 1);
-
-                        setTimeout(() => {
-                            grid.enemies.splice(i, 1);
-                        }, 0);
-                    }
-                });
-            });
-        }
-    });
-
-    if (keys.ArrowLeft.pressed && player.position.x > 0) {
-        player.velocity.x = -5;
-    } else if (keys.ArrowRight.pressed && player.position.x + player.width < canvas.width) {
-        player.velocity.x = 5;
     } else {
-        player.velocity.x = 0;
-    }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-    enemyGrids.forEach(grid => {
-        grid.update();
+        player.update();
 
-        grid.enemies.forEach((enemy) => {
-            if (enemy.alive && checkHitEnemy(enemy, player)) {  //Checking if the enemy collides with player
+        enemyProjectiles.forEach((enemyProjectile, index) => {
+            if (checkHitPlayer(enemyProjectile, player)) {
                 endGame();
             }
+            if (enemyProjectile.position.y + enemyProjectile.height >= canvas.height) {
+                setTimeout(() => {
+                    enemyProjectiles.splice(index, 1);
+                }, 0);
+            } else {
+                enemyProjectile.update();
+            }
         });
-        if (frames % 200 === 0 && grid.enemies.length > 0) {
-            grid.enemies[Math.floor(Math.random() * grid.enemies.length)].shoot(enemyProjectiles)
+
+        projectiles.forEach((projectile, index) => {
+            if (projectile.position.y + projectile.radius <= 0) {
+                setTimeout(() => {
+                    projectiles.splice(index, 1);
+                }, 0);
+            } else {
+                projectile.update();
+
+                enemyGrids.forEach(grid => {
+                    grid.enemies.forEach((enemy, i) => {
+                        if (enemy.alive && checkHit(projectile, enemy)) {
+                            score += 100;
+                            scoreCount.innerHTML = score;
+                            enemy.alive = false;
+                            projectiles.splice(index, 1);
+
+                            setTimeout(() => {
+                                grid.enemies.splice(i, 1);
+                            }, 0);
+                        }
+                    });
+                });
+            }
+        });
+
+        if (keys.ArrowLeft.pressed && player.position.x > 0) {
+            player.velocity.x = -5;
+        } else if (keys.ArrowRight.pressed && player.position.x + player.width < canvas.width) {
+            player.velocity.x = 5;
+        } else {
+            player.velocity.x = 0;
         }
-    });
 
-    enemyGrids.forEach((grid) => {
-        grid.enemies.forEach((enemy, index) => {
-            if (enemy.alive && enemy.position.y + enemy.height >= canvas.height) {
-                endGame();
+        enemyGrids.forEach(grid => {
+            grid.update();
+
+            grid.enemies.forEach((enemy) => {
+                if (enemy.alive && checkHitEnemy(enemy, player)) {  //Checking if the enemy collides with player
+                    endGame();
+                }
+            });
+            if (frames % 200 === 0 && grid.enemies.length > 0) {
+                grid.enemies[Math.floor(Math.random() * grid.enemies.length)].shoot(enemyProjectiles)
             }
         });
-    });
 
-    moreEnemies();
+        enemyGrids.forEach((grid) => {
+            grid.enemies.forEach((enemy, index) => {
+                if (enemy.alive && enemy.position.y + enemy.height >= canvas.height) {
+                    endGame();
+                }
+            });
+        });
 
-    frames++
+        moreEnemies();
 
-    requestAnimationFrame(animate);
+        frames++
+
+        requestAnimationFrame(animate);
+    }
 }
 
 animate();
