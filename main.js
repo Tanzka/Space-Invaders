@@ -101,32 +101,6 @@ const keys = {
 
 let score = 0;
 
-function animate() {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-    requestAnimationFrame(animate);
-    player.update();
-    projectiles.forEach((projectile, index) => {
-
-        if(projectile.position.y + projectile.radius <= 0) {
-            setTimeout(() => {
-                projectiles.splice(index, 1)
-            }, 0)
-        } else {
-            projectile.update()
-        }
-    })
-
-    if (keys.ArrowLeft.pressed && player.position.x >= 0) {
-        player.velocity.x = -3;
-    } else if (keys.ArrowRight.pressed && player.position.x + player.width <= canvas.width) {
-        player.velocity.x = 3;
-    } else {
-        player.velocity.x = 0;
-    }
-}
-
-
 addEventListener("keydown", ({ key }) => {
     switch (key) {
         case 'ArrowLeft':
@@ -139,13 +113,6 @@ addEventListener("keydown", ({ key }) => {
             break;
         case ' ':
             if(!keys.space.pressed) {
-                projectiles.push(new Projectile({
-                    position: {
-                        x: player.position.x + player.width / 2,
-                        y: player.position.y
-                    },
-                    velocity: { x: 0, y: -5 }
-                }));
                 //console.log("pew")
                 projectiles.push(new Projectile({
                     position: {
@@ -156,7 +123,7 @@ addEventListener("keydown", ({ key }) => {
                         x: 0,
                         y: -5
                     }
-                }))
+                }));
                 keys.space.pressed = true;
             }
             break;
@@ -341,19 +308,19 @@ function animate() {
             if (checkHitPlayer(enemyProjectile, player)) {
                 endGame();
             }
-            if (enemyProjectile.position.y + enemyProjectile.height >= canvas.height) {
+            if (enemyProjectile.position.y + enemyProjectile.height >= canvas.height) { //garbage collection
                 setTimeout(() => {
-                    enemyProjectiles.splice(index, 1);
+                    enemyProjectiles.splice(index, 1); 
                 }, 0);
             } else {
                 enemyProjectile.update();
             }
         });
 
-        projectiles.forEach((projectile, index) => {
+        projectiles.forEach((projectile, index) => { //garbage collection
             if (projectile.position.y + projectile.radius <= 0) {
                 setTimeout(() => {
-                    projectiles.splice(index, 1);
+                    projectiles.splice(index, 1); 
                 }, 0);
             } else {
                 projectile.update();
@@ -391,7 +358,7 @@ function animate() {
                     endGame();
                 }
             });
-            if (frames % 200 === 0 && grid.enemies.length > 0) {
+            if (frames % 100 === 0 && grid.enemies.length > 0) { //as long as the enemy grid isnt empty, random enemy fires every 100 frames
                 grid.enemies[Math.floor(Math.random() * grid.enemies.length)].shoot(enemyProjectiles)
             }
         });
